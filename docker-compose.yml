@@ -3,11 +3,9 @@ version: '3'
 services:
   # consul client agents
   consul-agent-1: &consul-agent
-    image: consul:latest
+    build: ./agent
     networks:
       - consul-demo
-    volumes:
-      - ./agent:/etc/consul.d
     command: "agent -retry-join consul-server-bootstrap -client 0.0.0.0 --config-file /etc/consul.d/default.json"
 
   consul-agent-2:
@@ -16,22 +14,19 @@ services:
   # consul server agents
   consul-server-1: &consul-server
     <<: *consul-agent
-    volumes:
-      - ./server:/etc/consul.d
+    build: ./server
     command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0  --config-file /etc/consul.d/default.json"
 
   consul-server-2:
     <<: *consul-server
 
   consul-server-bootstrap:
-    <<: *consul-agent
+    <<: *consul-server
     ports:
       - "8400:8400"
       - "8500:8500"
       - "8600:8600"
       - "8600:8600/udp"
-    volumes:
-      - ./server:/etc/consul.d
     command: "agent -server -client 0.0.0.0 --config-file /etc/consul.d/default.json"
   
   # consul dashboard app
